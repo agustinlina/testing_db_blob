@@ -1,5 +1,3 @@
-// POST { "usuario": "admin", "password": "cuadrobonito11" }
-// Si es válido, setea cookie `auth=ok` y redirige/retorna ok.
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -13,14 +11,13 @@ export default async function handler(req, res) {
     const { usuario, password, redirectTo = '/' } = body;
 
     if (usuario === 'admin' && password === 'cuadrobonito11') {
-      // Cookie de sesión (no persistente): sin Max-Age -> dura hasta cerrar navegador.
-      // Si querés que dure más, agrega: ; Max-Age=86400
+      // Nota: "Secure" requiere https (ok en Vercel). Para dev local en http, podés quitar "Secure".
       const cookie = [
         'auth=ok',
-        'Path=/', 
+        'Path=/',
         'SameSite=Lax',
-        'HttpOnly',        // evita acceso desde JS
-        'Secure'           // en producción (https)
+        'HttpOnly',
+        'Secure'
       ].join('; ');
 
       res.setHeader('Set-Cookie', cookie);
