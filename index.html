@@ -1,28 +1,134 @@
 <!doctype html>
 <html lang="es">
+
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
   <title>Usuarios (JSON persistente)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body{margin:0;min-height:100dvh;display:grid;place-items:center;background:#0f1115;color:#e6e6e6;font-family:system-ui,Segoe UI,Roboto,Arial}
-    .card{width:min(740px,92vw);background:#151923;border:1px solid #222838;border-radius:16px;box-shadow:0 6px 30px rgba(0,0,0,.35);padding:20px}
-    h1{margin:.2rem 0 1rem;font-size:1.2rem}
-    form{display:grid;gap:10px;grid-template-columns:1fr 1fr}
-    label{font-size:.85rem;color:#a8b0c0}
-    input,select,button{padding:10px 12px;border-radius:10px;border:1px solid #222838;background:#0f1320;color:#e6e6e6}
-    button{cursor:pointer;background:linear-gradient(180deg,#0f3b55,#0b2a3c);border-color:#10344a}
-    table{width:100%;border-collapse:collapse;margin-top:16px;font-size:.92rem}
-    th,td{border-bottom:1px solid #222838;padding:10px 8px;text-align:left;vertical-align:middle}
-    .tag{font-size:.75rem;padding:4px 8px;border-radius:999px;background:#0f2a33;color:#8cd3ff;border:1px solid #10344a}
-    .xbtn{width:28px;height:28px;border-radius:8px;border:1px solid #362b2b;background:#241819;color:#ffb3b3;cursor:pointer}
-    .xbtn:hover{filter:brightness(1.08)}
-    .row-span{grid-column:1 / -1}
-    .msg.ok{color:#baf7c0}.msg.err{color:#ffc4c4}
-    .actions{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap}
-    .pill{display:inline-flex;gap:6px;align-items:center;padding:8px 10px;border-radius:10px;background:#0f1320;border:1px solid #222838;color:#a8b0c0;font-size:.85rem;text-decoration:none}
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      background: #0f1115;
+      color: #e6e6e6;
+      font-family: system-ui, Segoe UI, Roboto, Arial
+    }
+
+    .card {
+      width: min(740px, 92vw);
+      background: #151923;
+      border: 1px solid #222838;
+      border-radius: 16px;
+      box-shadow: 0 6px 30px rgba(0, 0, 0, .35);
+      padding: 20px
+    }
+
+    h1 {
+      margin: .2rem 0 1rem;
+      font-size: 1.2rem
+    }
+
+    form {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr 1fr
+    }
+
+    label {
+      font-size: .85rem;
+      color: #a8b0c0
+    }
+
+    input,
+    select,
+    button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #222838;
+      background: #0f1320;
+      color: #e6e6e6
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(180deg, #0f3b55, #0b2a3c);
+      border-color: #10344a
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: .92rem
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #222838;
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: middle
+    }
+
+    .tag {
+      font-size: .75rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #0f2a33;
+      color: #8cd3ff;
+      border: 1px solid #10344a
+    }
+
+    .xbtn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid #362b2b;
+      background: #241819;
+      color: #ffb3b3;
+      cursor: pointer
+    }
+
+    .xbtn:hover {
+      filter: brightness(1.08)
+    }
+
+    .row-span {
+      grid-column: 1 / -1
+    }
+
+    .msg.ok {
+      color: #baf7c0
+    }
+
+    .msg.err {
+      color: #ffc4c4
+    }
+
+    .actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #0f1320;
+      border: 1px solid #222838;
+      color: #a8b0c0;
+      font-size: .85rem;
+      text-decoration: none
+    }
   </style>
 </head>
+
 <body>
   <div class="card">
     <h1>Alta de usuarios (persistencia en JSON)</h1>
@@ -30,11 +136,11 @@
     <form id="form">
       <div>
         <label>Usuario</label>
-        <input id="usuario" required autocomplete="off"/>
+        <input id="usuario" required autocomplete="off" />
       </div>
       <div>
         <label>Contraseña</label>
-        <input id="password" type="password" required/>
+        <input id="password" type="password" required />
       </div>
       <div>
         <label>Sede</label>
@@ -51,7 +157,14 @@
     </form>
 
     <table id="tabla">
-      <thead><tr><th style="width:90px;">ID</th><th>Usuario</th><th style="width:120px;">Sede</th><th style="width:44px;"></th></tr></thead>
+      <thead>
+        <tr>
+          <th style="width:90px;">ID</th>
+          <th>Usuario</th>
+          <th style="width:120px;">Sede</th>
+          <th style="width:44px;"></th>
+        </tr>
+      </thead>
       <tbody></tbody>
     </table>
   </div>
@@ -61,22 +174,22 @@
     const tbody = $('#tabla tbody');
     const msg = $('#msg');
 
-    function setMsg(t, ok=true){ msg.textContent=t; msg.className = 'row-span msg ' + (ok?'ok':'err'); }
-    function escapeHTML(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;"); }
+    function setMsg(t, ok = true) { msg.textContent = t; msg.className = 'row-span msg ' + (ok ? 'ok' : 'err'); }
+    function escapeHTML(s) { return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", "&#39;"); }
 
-    async function fetchUsers(){
-      const r = await fetch('/api/users', { cache:'no-store' });
+    async function fetchUsers() {
+      const r = await fetch('/api/users', { cache: 'no-store' });
       const j = await r.json();
       render(j);
     }
 
-    function render(users){
+    function render(users) {
       tbody.innerHTML = '';
-      if(!users.length){
+      if (!users.length) {
         tbody.innerHTML = '<tr><td colspan="4" style="color:#a8b0c0">Sin usuarios aún</td></tr>';
         return;
       }
-      for(const u of users){
+      for (const u of users) {
         const tr = document.createElement('tr');
         tr.dataset.id = u.id;
         tr.innerHTML = `
@@ -90,37 +203,37 @@
     }
 
     // Crear
-    $('#form').addEventListener('submit', async (ev)=>{
+    $('#form').addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const usuario = $('#usuario').value.trim();
       const password = $('#password').value;
       const sede = $('#sede').value;
-      if(!usuario || !password){ setMsg('Completá usuario y contraseña', false); return; }
+      if (!usuario || !password) { setMsg('Completá usuario y contraseña', false); return; }
 
       const r = await fetch('/api/users', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usuario, password, sede })
       });
       const j = await r.json();
-      if(!r.ok){ setMsg(j.error || 'No se pudo crear', false); return; }
+      if (!r.ok) { setMsg(j.error || 'No se pudo crear', false); return; }
       setMsg('Usuario creado ✔');
-      $('#usuario').value=''; $('#password').value='';
+      $('#usuario').value = ''; $('#password').value = '';
       fetchUsers();
     });
 
     // Borrar (delegación)
-    tbody.addEventListener('click', async (e)=>{
+    tbody.addEventListener('click', async (e) => {
       const btn = e.target.closest('.xbtn');
-      if(!btn) return;
+      if (!btn) return;
       const id = btn.dataset.id;
-      if(!id) return;
+      if (!id) return;
 
-      if(!confirm('¿Eliminar este usuario?')) return;
+      if (!confirm('¿Eliminar este usuario?')) return;
 
-      const r = await fetch(`/api/users?id=${encodeURIComponent(id)}`, { method:'DELETE' });
+      const r = await fetch(`/api/users?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const j = await r.json();
-      if(!r.ok){ setMsg(j.error || 'No se pudo eliminar', false); return; }
+      if (!r.ok) { setMsg(j.error || 'No se pudo eliminar', false); return; }
       setMsg('Usuario eliminado ✔');
       fetchUsers();
     });
@@ -128,4 +241,5 @@
     fetchUsers();
   </script>
 </body>
+
 </html>
