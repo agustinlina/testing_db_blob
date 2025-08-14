@@ -8,21 +8,20 @@ const __dirname = path.dirname(__filename)
 const ROOT = path.join(__dirname, '..')
 const LOCAL_DB = path.join(ROOT, 'users.json')
 
-// URL pública de tu blob (mismo nombre de archivo):
+// URL pública de tu blob:
 const BLOB_URL =
   'https://yuvdb04fmqfuhxsy.public.blob.vercel-storage.com/users.json'
 
-// Detecta Vercel
 const isVercel = !!process.env.VERCEL
 
-// Helpers CORS
+// ---- CORS ----
 function setCORS (res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 }
 
-// ---- LOCAL FS ----
+// ---- Local FS ----
 async function readLocal () {
   if (!fs.existsSync(LOCAL_DB)) fs.writeFileSync(LOCAL_DB, '[]', 'utf8')
   const raw = await fs.promises.readFile(LOCAL_DB, 'utf8')
@@ -36,7 +35,7 @@ async function writeLocal (arr) {
   await fs.promises.writeFile(LOCAL_DB, JSON.stringify(arr, null, 2), 'utf8')
 }
 
-// ---- BLOB ----
+// ---- Blob ----
 async function readBlob () {
   const res = await fetch(BLOB_URL, { cache: 'no-store' })
   if (res.status === 404) {
@@ -56,7 +55,6 @@ async function writeBlob (arr) {
 
 export default async function handler (req, res) {
   setCORS(res)
-
   if (req.method === 'OPTIONS') {
     res.status(200).end()
     return
@@ -64,16 +62,14 @@ export default async function handler (req, res) {
 
   try {
     if (req.method === 'GET') {
-      // ➜ DEV: lee archivo local | VERCEL: lee blob
       const data = isVercel ? await readBlob() : await readLocal()
       res.setHeader('Content-Type', 'application/json; charset=utf-8')
       res.setHeader('Cache-Control', 'no-store')
-      res.status(200).send(JSON.stringify(data)) // ← /api/users muestra el JSON tal cual
+      res.status(200).send(JSON.stringify(data))
       return
     }
 
     if (req.method === 'POST') {
-      // Alta de usuario (para que /api/users vaya creciendo)
       const chunks = []
       for await (const c of req) chunks.push(c)
       const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
@@ -89,6 +85,7 @@ export default async function handler (req, res) {
         return res.status(400).json({ error: 'Sede inválida' })
 
       const data = isVercel ? await readBlob() : await readLocal()
+
       const nuevo = {
         id: Date.now(),
         usuario: String(usuario),
@@ -97,13 +94,34 @@ export default async function handler (req, res) {
         createdAt: new Date().toISOString()
       }
       data.push(nuevo)
+
       if (isVercel) await writeBlob(data)
       else await writeLocal(data)
-
-      return res.status(201).json({ ok: true, id: nuevo.id })
+      res.status(201).json({ ok: true, id: nuevo.id })
+      return
     }
 
-    res.setHeader('Allow', 'GET, POST, OPTIONS')
+    if (req.method === 'DELETE') {
+      const url = new URL(req.url, `http://${req.headers.host}`)
+      const idStr = url.searchParams.get('id')
+      const id = Number(idStr)
+      if (!idStr || Number.isNaN(id))
+        return res.status(400).json({ error: 'Parámetro id requerido' })
+
+      const data = isVercel ? await readBlob() : await readLocal()
+      const before = data.length
+      const filtered = data.filter(u => Number(u.id) !== id)
+
+      if (filtered.length === before)
+        return res.status(404).json({ error: 'Usuario no encontrado' })
+
+      if (isVercel) await writeBlob(filtered)
+      else await writeLocal(filtered)
+      res.status(200).json({ ok: true, deleted: id })
+      return
+    }
+
+    res.setHeader('Allow', 'GET, POST, DELETE, OPTIONS')
     res.status(405).json({ error: 'Método no permitido' })
   } catch (e) {
     console.error(e)
