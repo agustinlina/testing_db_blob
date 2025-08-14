@@ -1,0 +1,12 @@
+{
+  "name": "usuarios-json-vercel-blob",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node -e \"console.log('Abrí index.html con Live Server o un http-server estático');\""
+  },
+  "dependencies": {
+    "@vercel/blob": "^0.23.0"
+  }
+}
