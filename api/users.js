@@ -1,69 +1,65 @@
-// En local: lee/escribe users.json del repo.
-// En Vercel: persiste en Vercel Blob (archivo durable users.json).
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { put, list } from '@vercel/blob';
+import { put } from '@vercel/blob';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 const ROOT = path.join(__dirname, '..');
 const LOCAL_DB = path.join(ROOT, 'users.json');
 
+// ✅ URL de tu store con el archivo users.json
+const BLOB_URL = 'https://yuvdb04fmqfuhxsy.public.blob.vercel-storage.com/users.json';
+
 const isVercel = !!process.env.VERCEL;
 
-// Helpers comunes
-function ok(res, data) { res.status(200).json(data); }
-function bad(res, msg, code=400){ res.status(code).json({ error: msg }); }
-
+// ----------- LOCAL MODE -----------
 async function readLocal() {
   if (!fs.existsSync(LOCAL_DB)) fs.writeFileSync(LOCAL_DB, '[]', 'utf8');
   const raw = await fs.promises.readFile(LOCAL_DB, 'utf8');
-  try { const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; }
-  catch { return []; }
+  try { return JSON.parse(raw) || []; } catch { return []; }
 }
+
 async function writeLocal(arr) {
   await fs.promises.writeFile(LOCAL_DB, JSON.stringify(arr, null, 2), 'utf8');
 }
 
-async function getBlobInfo() {
-  const { blobs } = await list({ prefix: 'users.json' });
-  const found = blobs.find(b => b.pathname === 'users.json');
-  return found || null;
-}
-
-async function ensureBlob() {
-  const info = await getBlobInfo();
-  if (info) return info;
-  const { url } = await put(
-    'users.json',
-    new Blob([JSON.stringify([], null, 2)], { type: 'application/json' }),
-    { access: 'public', addRandomSuffix: false, contentType: 'application/json' }
-  );
-  return { url, pathname: 'users.json' };
-}
-
+// ----------- BLOB MODE -----------
 async function readBlob() {
-  const info = await ensureBlob();
-  const res = await fetch(info.url, { cache: 'no-store' });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return Array.isArray(json) ? json : [];
+  try {
+    const res = await fetch(BLOB_URL, { cache: 'no-store' });
+    if (res.status === 404) {
+      // Si no existe, lo creo vacío
+      await writeBlob([]);
+      return [];
+    }
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json) ? json : [];
+  } catch (err) {
+    console.error('Error leyendo blob:', err);
+    return [];
+  }
 }
 
 async function writeBlob(arr) {
   await put(
-    'users.json',
-    JSON.stringify(arr, null, 2),
-    { access: 'public', addRandomSuffix: false, contentType: 'application/json' }
+    'users.json',                              // nombre dentro del store
+    JSON.stringify(arr, null, 2),              // contenido
+    {
+      access: 'public',
+      addRandomSuffix: false,
+      contentType: 'application/json'
+    }
   );
 }
 
+// ----------- API HANDLER -----------
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const data = isVercel ? await readBlob() : await readLocal();
-      return ok(res, data);
+      return res.status(200).json(data);
     }
 
     if (req.method === 'POST') {
@@ -73,11 +69,11 @@ export default async function handler(req, res) {
 
       let { usuario, password, sede } = body;
       if (!usuario || !password || !sede)
-        return bad(res, 'Campos requeridos: usuario, password, sede');
+        return res.status(400).json({ error: 'Campos requeridos: usuario, password, sede' });
 
       sede = String(sede).toLowerCase();
       if (!['olavarria', 'cordoba'].includes(sede))
-        return bad(res, 'Sede inválida. Use: olavarria | cordoba');
+        return res.status(400).json({ error: 'Sede inválida' });
 
       const data = isVercel ? await readBlob() : await readLocal();
 
@@ -98,9 +94,10 @@ export default async function handler(req, res) {
     }
 
     res.setHeader('Allow', 'GET, POST');
-    return bad(res, 'Método no permitido', 405);
+    return res.status(405).json({ error: 'Método no permitido' });
+
   } catch (e) {
     console.error(e);
-    return bad(res, 'Error interno', 500);
+    return res.status(500).json({ error: 'Error interno' });
   }
 }
